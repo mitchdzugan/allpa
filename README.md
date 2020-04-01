@@ -8,9 +8,11 @@
 ```
 
 **allpa** [aʎpa] *(Quechuan)* • noun
-> the soil, dirt, earth; the ground that supports us...
->
-> the foundation upon which all is built.
+> earth
+> 
+> the ground that supports us
+> 
+> without you, I have nothing to stand on
 
 ## Usage
 
