@@ -58,8 +58,9 @@
       (if (fn? f)
         (apply f args)
         (let [[get-drill-obj drill-funcs] f
-              drill-obj (if (keyword? get-drill-obj)
-                          (get-drill-obj obj)
+              drill-obj (if (and (keyword? get-drill-obj)
+                                 (not (empty? last-args)))
+                          (get-drill-obj (nth last-args 0))
                           (apply get-drill-obj args))]
           ((apply match drill-funcs args) drill-obj))))))
 
