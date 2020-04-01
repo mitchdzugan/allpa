@@ -11,7 +11,21 @@
   [[lein-cljsbuild "1.1.7"]
    [lein-figwheel "0.5.19"]
    [cider/cider-nrepl "0.21.1"]
-   [lein-doo "0.1.10"]]
+   [lein-doo "0.1.10"]
+   [lein-cloverage "1.0.13"]
+   [lein-shell "0.5.0"]
+   [lein-ancient "0.6.15"]
+   [lein-changelog "0.3.2"]]
+  :deploy-repositories [["releases" :clojars]]
+  :release-tasks [["shell" "git" "diff" "--exit-code"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["changelog" "release"]
+                  ["update-readme-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag"]
+                  ["deploy"]
+                  ["vcs" "push"]]
 
   :clojurescript? true
   :jar-exclusions [#"\.swp|\.swo|\.DS_Store"]
@@ -71,12 +85,16 @@
                       :source-map    true
                       :pretty-print  true}}}}
     :doo {:build "test-cljs"}}}
-    :aliases
-    {"test-cljs"
-     ["do"
-      ["clean"]
-      ["with-profile" "test-cljs" "doo" "node" "once"]]
-     "test-cljs-watch"
-     ["do"
-      ["clean"]
-      ["with-profile" "test-cljs" "doo" "node"]]})
+  :aliases {"update-readme-version" ["shell"
+                                     "sed"
+                                     "-i"
+                                     "s/\\\\[allpa \"[0-9.]*\"\\\\]/[allpa \"${:version}\"]/"
+                                     "README.md"]
+            "test-cljs"
+            ["do"
+             ["clean"]
+             ["with-profile" "test-cljs" "doo" "node" "once"]]
+            "test-cljs-watch"
+            ["do"
+             ["clean"]
+             ["with-profile" "test-cljs" "doo" "node"]]})
