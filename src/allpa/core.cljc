@@ -53,7 +53,7 @@
 (defn match [funcs & last-args]
   (fn [obj]
     (let [val (or (type obj) obj)
-          args (conj last-args obj)
+          args (conj (vec last-args) obj)
           f (or (get funcs val) (Default funcs))]
       (if (fn? f)
         (apply f args)
