@@ -5,4 +5,4 @@
       #?(:clj (int (Math/floor (Math/pow b e)))
          :cljs (.round js/Math (.floor js/Math (.pow js/Math b e))))))
 
-(defn p2 [n] (partial power 2))
+(def p2 (partial power 2))
