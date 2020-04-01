@@ -8,6 +8,12 @@
       (is (= (f 1) '(1)))
       (is (= (f 1 :b [0]) [0 1]))
       (is (= (f 1 :b [0] :c :d :e) [0 1]))))
+  (testing "alpha-num"
+    (is (= (a/alpha-num 0) "A"))
+    (is (= (a/alpha-num 25) "Z"))
+    (is (= (a/alpha-num 26) "AA"))
+    (is (= (a/alpha-num 701) "ZZ"))
+    (is (= (a/alpha-num 702) "AAA")))
   (testing "power"
     (is (= (a/power 2 3) 8))
     (is (= (a/power 2 0) 1))

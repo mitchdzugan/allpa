@@ -15,6 +15,16 @@
                     :clj (catch Exception e default)))]
      (if (int? tried) tried default))))
 
+(defn num-lookup [n]
+  (nth ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M"
+        "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
+       n))
+
+(defn alpha-num [n]
+  (if (< n 26)
+    (num-lookup n)
+    (str (alpha-num (dec (quot n 26))) (num-lookup (mod n 26)))))
+
 ;; macros
 
 #?(:clj
