@@ -41,8 +41,8 @@
                        :b #(-> % :val dec)})
           f2 (a/match {:a [:val
                            {2 (a/varg# "Yay")
-                            a/-default (a/varg# "Boo")}]
-                       a/-default (a/varg# ":0")})]
+                            a/Default (a/varg# "Boo")}]
+                       a/Default (a/varg# ":0")})]
       (is (= (f1 a1) 2))
       (is (= (f1 b1) 0))
 

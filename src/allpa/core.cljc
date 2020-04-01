@@ -3,15 +3,6 @@
                     [clojure.walk :as walk])
      :cljs (:require-macros [allpa.core :refer [varg#]])))
 
-;; math
-
-(defn power [b e]
-  (if (< e 0) 0
-      #?(:clj (int (Math/floor (Math/pow b e)))
-         :cljs (.round js/Math (.floor js/Math (.pow js/Math b e))))))
-
-(def p2 (partial power 2))
-
 ;; util
 
 (defn parse-int
@@ -23,30 +14,6 @@
                  #?(:cljs (catch js/Object e default)
                     :clj (catch Exception e default)))]
      (if (int? tried) tried default))))
-
-
-;; i hate defrecord/defprotocol
-
-(def mk #(assoc %2 ::type %1))
-
-(def -default ::-default)
-
-(def type ::type)
-
-(def id ::id)
-
-(def set-id #(assoc %1 ::id %2))
-
-(defn match [funcs & last-args]
-  (fn [obj]
-    (let [val (or (type obj) obj)
-          args (conj last-args obj)
-          f (or (get funcs val) (-default funcs))]
-      (if (fn? f)
-        (apply f args)
-        (let [[get-drill-obj drill-funcs] f]
-          ((apply match drill-funcs args)
-           (apply get-drill-obj args)))))))
 
 ;; macros
 
@@ -60,3 +27,37 @@
                                     (if (string/starts-with? sym-name "%")
                                       `(nth ~args ~(-> sym-name (subs 1) (parse-int -1) dec) nil)
                                       sym)))))))))
+
+;; math
+
+(defn power [b e]
+  (if (< e 0) 0
+      #?(:clj (int (Math/floor (Math/pow b e)))
+         :cljs (.round js/Math (.floor js/Math (.pow js/Math b e))))))
+
+(def p2 (partial power 2))
+
+
+;; i hate defrecord/defprotocol
+
+(def mk (varg# (assoc %2 ::type %1)))
+
+(def Default ::Default)
+
+(def type ::type)
+
+(def id ::id)
+
+(def set-id #(assoc %1 ::id %2))
+
+(defn match [funcs & last-args]
+  (fn [obj]
+    (let [val (or (type obj) obj)
+          args (conj last-args obj)
+          f (or (get funcs val) (Default funcs))]
+      (if (fn? f)
+        (apply f args)
+        (let [[get-drill-obj drill-funcs] f]
+          ((apply match drill-funcs args)
+           (apply get-drill-obj args)))))))
+
