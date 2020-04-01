@@ -46,7 +46,12 @@
           f3 (a/match
               {a/Default [(a/varg# (+ 3 (:val %1)))
                           {a/Default [(a/varg# (* 5 (:val %1)))
-                                      {a/Default (a/varg# [%1 %2 %3 %4])}]}]})]
+                                      {a/Default (a/varg# [%1 %2 %3 %4])}]}]})
+          f4 (a/match
+              {a/Default [(a/varg# %1)
+                          {a/Default [(a/varg# %1)
+                                      {a/Default [:val
+                                                  {a/Default (a/varg# %4)}]}]}]})]
       (is (= (f1 a1) 2))
       (is (= (f1 b1) 0))
 
@@ -55,4 +60,6 @@
       (is (= (f2 a2) "Yay"))
       (is (= (f2 b2) ":0"))
 
-      (is (= (f3 b2) [b2 5 25 nil])))))
+      (is (= (f3 b2) [b2 5 10 nil]))
+
+      (is (= (f4 b2) 2)))))

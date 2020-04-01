@@ -57,7 +57,9 @@
           f (or (get funcs val) (Default funcs))]
       (if (fn? f)
         (apply f args)
-        (let [[get-drill-obj drill-funcs] f]
-          ((apply match drill-funcs args)
-           (apply get-drill-obj args)))))))
+        (let [[get-drill-obj drill-funcs] f
+              drill-obj (if (keyword? get-drill-obj)
+                          (get-drill-obj obj)
+                          (apply get-drill-obj args))]
+          ((apply match drill-funcs args) drill-obj))))))
 
