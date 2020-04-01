@@ -53,13 +53,6 @@
     :source-paths ["src" "env/dev/clj" "env/dev/cljs"]
     :resource-paths ["resources" "env/dev/resources" "target/cljsbuild"]
 
-    :figwheel
-    {:server-port      3450
-     :nrepl-port       7000
-     :nrepl-middleware [cider.piggieback/wrap-cljs-repl
-                        cider.nrepl/cider-middleware]
-     :css-dirs         ["resources/public/css" "env/dev/resources/public/css"]
-     :ring-handler     allpa.server/app}
     :cljsbuild
     {:builds
      {:app
