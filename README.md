@@ -6,7 +6,7 @@
 A Clojure library designed to ... well, that part is up to you.
 
 ```clj
-[allpa "0.1.1"]
+[allpa "0.1.2"]
 ```
 
 ## Usage
