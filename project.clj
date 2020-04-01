@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies
-  [[org.clojure/clojure "1.10.0" :scope "provided"]
+  [[org.clojure/clojure "1.10.1" :scope "provided"]
    [org.clojure/clojurescript "1.10.597" :scope "provided"]]
 
   :plugins
@@ -41,14 +41,14 @@
      [ring-webjars "0.2.0"]
      [ring "1.8.0"]
      [ring/ring-defaults "0.3.2"]
-     [metosin/reitit "0.3.10"]
-     [metosin/reitit-ring "0.3.10"]
+     [metosin/reitit "0.4.2"]
+     [metosin/reitit-ring "0.4.2"]
      [hiccup "1.0.5"]
-     [nrepl "0.6.0"]
-     [binaryage/devtools "0.9.11"]
+     [nrepl "0.7.0"]
+     [binaryage/devtools "1.0.0"]
      [cider/piggieback "0.4.2"]
      [figwheel-sidecar "0.5.19"]
-     [reagent "0.9.0-rc4"]]
+     [reagent "0.10.0"]]
 
     :source-paths ["src" "env/dev/clj" "env/dev/cljs"]
     :resource-paths ["resources" "env/dev/resources" "target/cljsbuild"]
