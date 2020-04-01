@@ -1,6 +1,8 @@
 (ns allpa.core-test-clj
   (:require [clojure.test :refer :all]
-            [allpa.core :as a]))
+            [wayra.core :as w]
+            [allpa.core :as a]
+            [allpa.linked-hash-map :as lhm]))
 
 (deftest core-api
   (testing "varg#"
@@ -71,3 +73,85 @@
 
       (is (= (f4 a2) 2))
       (is (= (f4 b2) 2)))))
+
+(deftest linked-hash-map
+  (testing "append"
+    (is (= (-> (lhm/exec (w/mdo (lhm/appendm 1)
+                                (lhm/appendm 2)
+                                (lhm/appendm 3)))
+               lhm/to-vector)
+           [1 2 3]))
+    (is (= (-> (lhm/exec (w/mdo (lhm/appendm {:v "a"} a/set-id)
+                                (lhm/appendm {:v "b"} a/set-id)
+                                (lhm/appendm {:v "c"} a/set-id)))
+               lhm/to-vector)
+           [{:v "a" a/id 1}
+            {:v "b" a/id 2}
+            {:v "c" a/id 3}])))
+  (testing "insert"
+    (is (= (-> (lhm/exec (w/mdo id-1 <- (lhm/appendm 1)
+                                (lhm/appendm 2)
+                                id-4 <- (lhm/appendm 4)
+                                (lhm/insertm id-4 3)
+                                (lhm/insertm id-1 0)
+                                (lhm/appendm 5)))
+               lhm/to-vector)
+           [0 1 2 3 4 5])))
+  (testing "get/set"
+    (is (= (-> (lhm/exec (w/mdo (lhm/appendm {:v "a"})
+                                id-2 <- (lhm/appendm {:v "b"})
+                                id-3 <- (lhm/appendm {:v "c"})
+                                v-2 <- (lhm/getm id-2)
+                                v-3 <- (lhm/getm id-3)
+                                (lhm/setm id-2 v-3)
+                                (lhm/setm id-3 v-2)))
+               lhm/to-vector)
+           [{:v "a"} {:v "c"} {:v "b"}])))
+  (testing "remove"
+    (is (= (-> (lhm/exec (w/mdo id-1 <- (lhm/appendm 1)
+                                id-2 <- (lhm/appendm 2)
+                                (lhm/appendm 3)
+                                (lhm/removem id-1)
+                                id-4 <- (lhm/appendm 4)
+                                (lhm/insertm id-2 0)
+                                (lhm/removem id-4)
+                                (lhm/appendm 5)))
+               lhm/to-vector)
+           [0 2 3 5])))
+  (testing "take-while"
+    (is (= (-> (lhm/exec (w/mdo (lhm/appendm 1)
+                                (lhm/appendm 2)
+                                (lhm/appendm 3)
+                                (lhm/appendm 4)
+                                (lhm/appendm 5)))
+               (lhm/take-while #(< % 3)))
+           [1 2])))
+  (testing "rebuild"
+    (let [v (lhm/exec (w/mdo (lhm/appendm {:v "a"} a/set-id)
+                             (lhm/appendm {:v "b"} a/set-id)
+                             (lhm/appendm {:v "c"} a/set-id)
+                             (lhm/appendm {:v "d"} a/set-id)
+                             (lhm/appendm {:v "e"} a/set-id)))]
+      (is (= (-> v lhm/to-vector lhm/rebuild)
+             v)))
+    (let [v (lhm/exec (w/mdo (lhm/appendm {:v "a"} a/set-id)
+                             (lhm/appendm {:v "b"} a/set-id)
+                             (lhm/appendm {:v "c"} a/set-id)
+                             id-e <- (lhm/appendm {:v "e"} a/set-id)
+                             (lhm/insertm id-e {:v "d"} a/set-id)
+                             ))]
+      (is (= (-> v lhm/to-vector lhm/rebuild)
+             v))))
+  (testing "ignore ops on missing id"
+    (is (= (-> (lhm/exec (w/mdo id <- (lhm/appendm {:v "a"})
+                                (lhm/setm (inc id) {:v "b"})))
+               lhm/to-vector)
+           [{:v "a"}]))
+    (is (= (-> (lhm/exec (w/mdo id <- (lhm/appendm {:v "a"})
+                                (lhm/insertm (inc id) {:v "b"})))
+               lhm/to-vector)
+           [{:v "a"}]))
+    (is (= (-> (lhm/exec (w/mdo id <- (lhm/appendm {:v "a"})
+                                (lhm/removem (inc id))))
+               lhm/to-vector)
+           [{:v "a"}]))))
