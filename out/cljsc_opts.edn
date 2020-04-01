@@ -1,1 +1,0 @@
-{:main "allpa.runner", :output-to "target/test/core.js", :target :nodejs, :optimizations :none, :source-map true, :pretty-print true}
