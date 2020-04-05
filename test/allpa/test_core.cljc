@@ -1,8 +1,10 @@
-(ns allpa.core-test-clj
-  (:require [clojure.test :refer :all]
-            [wayra.core :as w]
-            [allpa.core :as a]
-            [allpa.linked-hash-map :as lhm]))
+(ns allpa.test-core
+  (:require
+   #?(:clj [clojure.test :refer :all]
+      :cljs [cljs.test :refer-macros [is are deftest testing use-fixtures]])
+   [wayra.core :as w]
+   [allpa.core :as a]
+   [allpa.linked-hash-map :as lhm]))
 
 (deftest core-api
   (testing "varg#"
