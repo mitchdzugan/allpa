@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.13] — 2020-04-06
+
 ## [0.1.12] — 2020-04-06
 
 ## [0.1.11] — 2020-04-01
@@ -53,4 +55,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.1.10]: https://github.com/mitchdzugan/allpa/compare/0.1.9...0.1.10
 [0.1.11]: https://github.com/mitchdzugan/allpa/compare/0.1.10...0.1.11
 [0.1.12]: https://github.com/mitchdzugan/allpa/compare/0.1.11...0.1.12
-[Unreleased]: https://github.com/mitchdzugan/allpa/compare/0.1.12...HEAD
+[0.1.13]: https://github.com/mitchdzugan/allpa/compare/0.1.12...0.1.13
+[Unreleased]: https://github.com/mitchdzugan/allpa/compare/0.1.13...HEAD
