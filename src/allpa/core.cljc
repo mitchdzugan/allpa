@@ -4,7 +4,7 @@
                     [clojure.core.match]
                     [net.cgrand.macrovich :as macros])
      :cljs (:require [cljs.core.match]))
-  #?(:cljs (:require-macros [allpa.core :refer [varg# deftagged match]]
+  #?(:cljs (:require-macros [allpa.core :refer [varg# deftagged match defn-match fn-match]]
                             [net.cgrand.macrovich :as macros]
                             [cljs.core.match]
                             )))
@@ -102,6 +102,7 @@
 
 #?(:clj
    (defmacro match [v & specs]
+     {:style/indent 1}
      `(~(macros/case :clj 'clojure.core.match/match
                      :cljs 'cljs.core.match/match)
        ~v
@@ -132,3 +133,18 @@
                                                     :forms)))))))
                                         form)))
                    (range))))))
+
+#?(:clj
+   (defmacro defn-match
+     {:style/indent 1}
+     [label & specs]
+     (let [splat (gensym "splat")]
+       `(defn ~label [& ~splat]
+          (match (vec ~splat) ~@specs)))))
+
+#?(:clj
+   (defmacro fn-match
+     [& specs]
+     (let [splat (gensym "splat")]
+       `(fn [& ~splat]
+          (match (vec ~splat) ~@specs)))))

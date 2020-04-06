@@ -11,6 +11,15 @@
 (a/deftagged MyB [v1 v2])
 (a/deftagged MyC [v1 v2 [def1 10 def2 20 def3 30]])
 
+(a/defn-match match-f1
+  [1 2 3] :a
+  [7] :b)
+
+(def match-f2
+  (a/fn-match
+   [1 2 3] :a
+   [7] :b))
+
 (deftest core-api
   (testing "deftagged"
     (is (= (MyA) (a/mk ::MyA {})))
@@ -45,7 +54,12 @@
     (is (= (a/match (MyB 100 20)
                     (MyB :v1 10 v2) (inc v2)
                     (MyB :v1 100 v2) (dec v2))
-           19)))
+           19))
+    (is (= (match-f1 1 2 3) :a))
+    (is (= (match-f1 7) :b))
+    (is (= (match-f2 1 2 3) :a))
+    (is (= (match-f2 7) :b))
+    )
   (testing "varg#"
     (let [f (a/varg# (conj %3 %1))]
       (is (= (f 1) '(1)))
