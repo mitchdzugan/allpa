@@ -4,8 +4,8 @@
       :cljs [cljs.test :refer-macros [is are deftest testing use-fixtures]])
    [wayra.core :as w]
    [allpa.core :as a]
-   [allpa.linked-hash-map :as lhm])
-  )
+   [allpa.dep :as d :refer [Dep]]
+   [allpa.linked-hash-map :as lhm]))
 
 (a/deftagged MyA [])
 (a/deftagged MyB [v1 v2])
@@ -40,8 +40,7 @@
     (is (= (a/match 1 1 :good 2 :bad) :good))
     (is (= (a/match 2 1 :good 2 :bad) :bad))
     (is (= (a/match (MyB 1 2)
-                    (MyB :v1 1 :v2 2) true
-                    (MyB :v1 10 :v2 20) false)
+                    (MyB :v1 1 :v2 2) true)
          true))
     (is (= (a/match (MyB 10 20)
                     (MyB :v1 1 :v2 2) true
@@ -59,6 +58,10 @@
     (is (= (match-f1 7) :b))
     (is (= (match-f2 1 2 3) :a))
     (is (= (match-f2 7) :b))
+    (is (= (a/match (d/Dep) (allpa.dep/Dep) true _ false) true))
+    (is (= (a/match (d/Dep) (d/Dep) true _ false) true))
+    (is (= (a/match (Dep) (d/Dep) true _ false) true))
+    (is (= (a/match (d/Dep) (Dep) true _ false) true))
     )
   (testing "varg#"
     (let [f (a/varg# (conj %3 %1))]

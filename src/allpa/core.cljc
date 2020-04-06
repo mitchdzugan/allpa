@@ -89,16 +89,19 @@
                      (map #(nth %1 1))
                      (concat required))
            splat (gensym "splat")]
-       `(defn ~label [& ~splat]
-          (when (< (count ~splat) ~(count required))
-            (throw (Err ~(str *ns* "/" label " must have at least " (count required) " arguments"))))
-          (when (> (count ~splat) ~(count argv))
-            (throw (Err ~(str *ns* "/" label " can have no more than " (count argv) " arguments"))))
-          (mk ~(keyword (str *ns*) (name label))
-              ~(if (empty? argv) '{}
-                   `(let [[~@argv] (concat ~splat (drop (- (count ~splat) ~(count required))
-                                                        [~@defaults]))]
-                      (hash-map ~@(mapcat #(-> [(keyword %1) %1]) argv)))))))))
+       `(def ~label
+          (with-meta
+            (fn [& ~splat]
+              (when (< (count ~splat) ~(count required))
+                (throw (Err ~(str *ns* "/" label " must have at least " (count required) " arguments"))))
+              (when (> (count ~splat) ~(count argv))
+                (throw (Err ~(str *ns* "/" label " can have no more than " (count argv) " arguments"))))
+              (mk ~(keyword (str *ns*) (name label))
+                  ~(if (empty? argv) '{}
+                       `(let [[~@argv] (concat ~splat (drop (- (count ~splat) ~(count required))
+                                                            [~@defaults]))]
+                          (hash-map ~@(mapcat #(-> [(keyword %1) %1]) argv))))))
+            {:allpa-type ~(keyword (str *ns*) (name label))})))))
 
 #?(:clj
    (defmacro match [v & specs]
@@ -112,25 +115,27 @@
                          (walk/postwalk
                           (fn [form]
                             (if (not (list? form)) form
-                                (let [[x & xs] form
+                                (let [t (gensym "t")
+                                      pass (gensym "pass")
+                                      [x & xs] form
                                       tagged? (and (symbol? x)
                                                    (Character/isUpperCase (first (name x))))]
                                   (if (not tagged?) form
-                                      (let [ns (or (namespace x)
-                                                   (str (ns-name *ns*)))
-                                            nm (name x)]
-                                        (apply hash-map (-> ::type) (keyword ns nm)
-                                               (->> xs
-                                                    (reduce
-                                                     (fn [{:keys [kw? forms]} curr]
-                                                       (cond
-                                                         (not kw?) {:kw? true :forms (conj forms curr)}
-                                                         (keyword? curr) {:kw? false :forms (conj forms curr)}
-                                                         :else {:kw? true :forms (-> forms
-                                                                                     (conj (keyword curr))
-                                                                                     (conj curr))}))
-                                                     {:kw? true :forms []})
-                                                    :forms)))))))
+                                      (merge {::type `(~pass :guard (fn [~t] (= ~t (-> ~x meta :allpa-type))))}
+                                             (apply hash-map (->> xs
+                                                                  (reduce
+                                                                   (fn [{:keys [kw? forms]} curr]
+                                                                     (cond
+                                                                       (not kw?) {:kw? true
+                                                                                  :forms (conj forms curr)}
+                                                                       (keyword? curr) {:forms (conj forms curr)
+                                                                                        :kw? false}
+                                                                       :else {:kw? true
+                                                                              :forms (-> forms
+                                                                                         (conj (keyword curr))
+                                                                                         (conj curr))}))
+                                                                   {:kw? true :forms []})
+                                                                  :forms)))))))
                                         form)))
                    (range))))))
 
