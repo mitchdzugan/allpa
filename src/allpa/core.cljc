@@ -88,7 +88,10 @@
                      (filter (fn [[id _]] (even? id)))
                      (map #(nth %1 1))
                      (concat required))
-           splat (gensym "splat")]
+           splat (gensym "splat")
+           mkkw #(if (Character/isUpperCase (first (str %1)))
+                   (keyword (str *ns*) (str %1))
+                   (keyword %1))]
        `(def ~label
           (with-meta
             (fn [& ~splat]
@@ -100,7 +103,7 @@
                   ~(if (empty? argv) '{}
                        `(let [[~@argv] (concat ~splat (drop (- (count ~splat) ~(count required))
                                                             [~@defaults]))]
-                          (hash-map ~@(mapcat #(-> [(keyword %1) %1]) argv))))))
+                          (hash-map ~@(mapcat #(-> [(mkkw %1) %1]) argv))))))
             {:allpa-type ~(keyword (str *ns*) (name label))})))))
 
 #?(:clj

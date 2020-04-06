@@ -10,6 +10,7 @@
 (a/deftagged MyA [])
 (a/deftagged MyB [v1 v2])
 (a/deftagged MyC [v1 v2 [def1 10 def2 20 def3 30]])
+(a/deftagged Namespaced [A B c])
 
 (a/defn-match match-f1
   [1 2 3] :a
@@ -35,7 +36,8 @@
 
     (is (thrown-with-msg? #?(:clj Exception :cljs js/Error)
                           #"allpa.test-core/MyC can have no more than 5 arguments"
-                          (MyC 1 2 11 12 13 14))))
+                          (MyC 1 2 11 12 13 14)))
+    (is (= (Namespaced 1 2 3) (a/mk ::Namespaced {::A 1 ::B 2 :c 3}))))
   (testing "match"
     (is (= (a/match 1 1 :good 2 :bad) :good))
     (is (= (a/match 2 1 :good 2 :bad) :bad))
