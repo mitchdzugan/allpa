@@ -4,9 +4,48 @@
       :cljs [cljs.test :refer-macros [is are deftest testing use-fixtures]])
    [wayra.core :as w]
    [allpa.core :as a]
-   [allpa.linked-hash-map :as lhm]))
+   [allpa.linked-hash-map :as lhm])
+  )
+
+(a/deftagged MyA [])
+(a/deftagged MyB [v1 v2])
+(a/deftagged MyC [v1 v2 [def1 10 def2 20 def3 30]])
 
 (deftest core-api
+  (testing "deftagged"
+    (is (= (MyA) (a/mk ::MyA {})))
+    (is (= (MyB 1 2) (a/mk ::MyB {:v1 1 :v2 2})))
+    (is (= (MyC 1 2) (a/mk ::MyC {:v1 1 :v2 2 :def1 10 :def2 20 :def3 30})))
+    (is (= (MyC 1 2) (a/mk ::MyC {:v1 1 :v2 2 :def1 10 :def2 20 :def3 30})))
+    (is (= (MyC 1 2 11) (a/mk ::MyC {:v1 1 :v2 2 :def1 11 :def2 20 :def3 30})))
+    (is (= (MyC 1 2 11 12) (a/mk ::MyC {:v1 1 :v2 2 :def1 11 :def2 12 :def3 30})))
+    (is (= (MyC 1 2 11 12 13) (a/mk ::MyC {:v1 1 :v2 2 :def1 11 :def2 12 :def3 13})))
+    (is (thrown-with-msg? #?(:clj Exception :cljs js/Error)
+                          #"allpa.test-core/MyC must have at least 2 arguments"
+                          (MyC 1)))
+
+    (is (thrown-with-msg? #?(:clj Exception :cljs js/Error)
+                          #"allpa.test-core/MyC can have no more than 5 arguments"
+                          (MyC 1 2 11 12 13 14))))
+  (testing "match"
+    (is (= (a/match 1 1 :good 2 :bad) :good))
+    (is (= (a/match 2 1 :good 2 :bad) :bad))
+    (is (= (a/match (MyB 1 2)
+                    (MyB :v1 1 :v2 2) true
+                    (MyB :v1 10 :v2 20) false)
+         true))
+    (is (= (a/match (MyB 10 20)
+                    (MyB :v1 1 :v2 2) true
+                    (MyB :v1 10 :v2 20) false)
+           false))
+    (is (= (a/match (MyB 10 20)
+                    (MyB :v1 10 v2) (inc v2)
+                    (MyB :v1 100 v2) (dec v2))
+           21))
+    (is (= (a/match (MyB 100 20)
+                    (MyB :v1 10 v2) (inc v2)
+                    (MyB :v1 100 v2) (dec v2))
+           19)))
   (testing "varg#"
     (let [f (a/varg# (conj %3 %1))]
       (is (= (f 1) '(1)))
@@ -41,40 +80,7 @@
     (is (= (a/parse-int "5432") 5432))
     (is (= (a/parse-int "-7") -7))
     (is (= (a/parse-int "asdf") nil))
-    (is (= (a/parse-int "asdf" "default") "default")))
-  (testing "match"
-    (let [a1 (a/mk :a {:val 1})
-          b1 (a/mk :b {:val 1})
-          a2 (a/mk :a {:val 2})
-          b2 (a/mk :b {:val 2})
-          f1 (a/match {:a #(-> % :val inc)
-                       :b #(-> % :val dec)})
-          f2 (a/match {:a [:val
-                           {2 (a/varg# "Yay")
-                            a/Default (a/varg# "Boo")}]
-                       a/Default (a/varg# ":0")})
-          f3 (a/match
-              {a/Default [(a/varg# (+ 3 (:val %1)))
-                          {a/Default [(a/varg# (* 5 (:val %1)))
-                                      {a/Default (a/varg# [%1 %2 %3 %4])}]}]})
-          f4 (a/match
-              {:a [:val {a/Default (a/varg# %2)}]
-               a/Default [(a/varg# %1)
-                          {a/Default [(a/varg# :xD)
-                                      {a/Default [:val
-                                                  {a/Default (a/varg# %4)}]}]}]})]
-      (is (= (f1 a1) 2))
-      (is (= (f1 b1) 0))
-
-      (is (= (f2 a1) "Boo"))
-      (is (= (f2 b1) ":0"))
-      (is (= (f2 a2) "Yay"))
-      (is (= (f2 b2) ":0"))
-
-      (is (= (f3 b2) [b2 5 10 nil]))
-
-      (is (= (f4 a2) 2))
-      (is (= (f4 b2) 2)))))
+    (is (= (a/parse-int "asdf" "default") "default"))))
 
 (deftest linked-hash-map
   (testing "append"

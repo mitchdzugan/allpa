@@ -1,7 +1,15 @@
 (ns allpa.core
   #?(:clj (:require [clojure.string :as string]
-                    [clojure.walk :as walk])
-     :cljs (:require-macros [allpa.core :refer [varg#]])))
+                    [clojure.walk :as walk]
+                    [clojure.core.match]
+                    [net.cgrand.macrovich :as macros])
+     :cljs (:require [cljs.core.match]))
+  #?(:cljs (:require-macros [allpa.core :refer [varg# deftagged match]]
+                            [net.cgrand.macrovich :as macros]
+                            [cljs.core.match]
+                            )))
+
+(def clj? #?(:clj true :cljs false))
 
 ;; util
 
@@ -19,6 +27,10 @@
   (nth ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M"
         "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
        n))
+
+(defn Err [arg]
+  #?(:clj (Exception. arg)
+     :cljs (js/Error. arg)))
 
 (defn alpha-num [n]
   (if (< n 26)
@@ -60,17 +72,63 @@
 
 (def set-id #(assoc %1 ::id %2))
 
-(defn match [funcs & last-args]
-  (fn [obj]
-    (let [val (or (type obj) obj)
-          args (conj (vec last-args) obj)
-          f (or (get funcs val) (Default funcs))]
-      (if (fn? f)
-        (apply f args)
-        (let [[get-drill-obj drill-funcs] f
-              drill-obj (if (and (keyword? get-drill-obj)
-                                 (not (empty? last-args)))
-                          (get-drill-obj (nth last-args 0))
-                          (apply get-drill-obj args))]
-          ((apply match drill-funcs args) drill-obj))))))
+#?(:clj
+   (defmacro deftagged [label argv-raw]
+     (let [required (remove vector? argv-raw)
+           defaults (->> argv-raw
+                         (filter vector?)
+                         (mapcat #(-> %1))
+                         (map #(-> [%1 %2]) (range))
+                         (filter (fn [[id _]] (odd? id)))
+                         (map #(nth %1 1)))
+           argv (->> argv-raw
+                     (filter vector?)
+                     (mapcat #(-> %1))
+                     (map #(-> [%1 %2]) (range))
+                     (filter (fn [[id _]] (even? id)))
+                     (map #(nth %1 1))
+                     (concat required))
+           splat (gensym "splat")]
+       `(defn ~label [& ~splat]
+          (when (< (count ~splat) ~(count required))
+            (throw (Err ~(str *ns* "/" label " must have at least " (count required) " arguments"))))
+          (when (> (count ~splat) ~(count argv))
+            (throw (Err ~(str *ns* "/" label " can have no more than " (count argv) " arguments"))))
+          (mk ~(keyword (str *ns*) (name label))
+              ~(if (empty? argv) '{}
+                   `(let [[~@argv] (concat ~splat (drop (- (count ~splat) ~(count required))
+                                                        [~@defaults]))]
+                      (hash-map ~@(mapcat #(-> [(keyword %1) %1]) argv)))))))))
 
+#?(:clj
+   (defmacro match [v & specs]
+     `(~(macros/case :clj 'clojure.core.match/match
+                     :cljs 'cljs.core.match/match)
+       ~v
+       ~@(->> specs
+              (map (fn [id form]
+                     (if (odd? id) form
+                         (walk/postwalk
+                          (fn [form]
+                            (if (not (list? form)) form
+                                (let [[x & xs] form
+                                      tagged? (and (symbol? x)
+                                                   (Character/isUpperCase (first (name x))))]
+                                  (if (not tagged?) form
+                                      (let [ns (or (namespace x)
+                                                   (str (ns-name *ns*)))
+                                            nm (name x)]
+                                        (apply hash-map (-> ::type) (keyword ns nm)
+                                               (->> xs
+                                                    (reduce
+                                                     (fn [{:keys [kw? forms]} curr]
+                                                       (cond
+                                                         (not kw?) {:kw? true :forms (conj forms curr)}
+                                                         (keyword? curr) {:kw? false :forms (conj forms curr)}
+                                                         :else {:kw? true :forms (-> forms
+                                                                                     (conj (keyword curr))
+                                                                                     (conj curr))}))
+                                                     {:kw? true :forms []})
+                                                    :forms)))))))
+                                        form)))
+                   (range))))))
