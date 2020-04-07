@@ -112,7 +112,6 @@
 
 #?(:clj
    (defmacro match [v & specs]
-     {:style/indent 1}
      `(~(macros/case :clj 'clojure.core.match/match
                      :cljs 'cljs.core.match/match)
        ~v
@@ -148,7 +147,6 @@
 
 #?(:clj
    (defmacro defn-match
-     {:style/indent 1}
      [label & specs]
      (let [splat (gensym "splat")]
        `(defn ~label [& ~splat]

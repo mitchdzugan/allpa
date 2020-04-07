@@ -13,7 +13,7 @@
 (a/deftagged Namespaced [A B c])
 
 (a/defn-match match-f1
-  [1 2 3] :a
+  [1 (a :guard #(= %1 2)) 3] :a
   [7] :b)
 
 (def match-f2
@@ -156,7 +156,10 @@
                                 (lhm/appendm 4)
                                 (lhm/appendm 5)))
                (lhm/take-while #(< % 3)))
-           [1 2])))
+           [1 2]))
+    (is (= (-> lhm/linked-hash-map
+               (lhm/take-while #(< % 3)))
+           [])))
   (testing "rebuild"
     (let [v (lhm/exec (w/mdo (lhm/appendm {:v "a"} a/set-id)
                              (lhm/appendm {:v "b"} a/set-id)
