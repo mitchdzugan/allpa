@@ -99,7 +99,11 @@
     (is (= (a/parse-int "5432") 5432))
     (is (= (a/parse-int "-7") -7))
     (is (= (a/parse-int "asdf") nil))
-    (is (= (a/parse-int "asdf" "default") "default"))))
+    (is (= (a/parse-int "asdf" "default") "default")))
+  (testing "curry"
+    (is (= ((a/curry (fn [a b c] [a b c]) 3) 1 2) [1 2 3]))
+    (is (= ((a/curry (fn [a b c] [a b c]) 2 3) 1) [1 2 3]))
+    (is (= ((a/curry (fn [a b c] [a b c]) 1 2 3)) [1 2 3]))))
 
 (deftest linked-hash-map
   (testing "append"

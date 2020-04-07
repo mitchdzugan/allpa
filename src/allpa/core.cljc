@@ -37,6 +37,10 @@
     (num-lookup n)
     (str (alpha-num (dec (quot n 26))) (num-lookup (mod n 26)))))
 
+(defn curry [f & args2]
+  (fn [& args1]
+    (apply f (concat args1 args2))))
+
 ;; macros
 
 #?(:clj
