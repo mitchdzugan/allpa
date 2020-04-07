@@ -20,14 +20,14 @@
     (if (empty? lhm)
       {:id id
        :lhm (-> lhm
-                (assoc-in [::hash-map id] {::val v})
+                (assoc-in [::hash-map id] {::val v ::prev nil ::next nil})
                 (assoc ::next-id (inc id))
                 (assoc ::first id)
                 (assoc ::last id))}
       {:id id
        :lhm (-> lhm
                 (assoc-in [::hash-map last ::next] id)
-                (assoc-in [::hash-map id] {::val v ::prev last})
+                (assoc-in [::hash-map id] {::val v ::prev last ::next nil})
                 (assoc ::next-id (inc id))
                 (assoc ::last id))})))
 

@@ -172,6 +172,14 @@
                              (lhm/insertm id-e {:v "d"} a/set-id)
                              ))]
       (is (= (-> v lhm/to-vector lhm/rebuild)
+             v)))
+    (let [v (lhm/exec (w/mdo id-a <- (lhm/appendm {:v "a"} a/set-id)
+                             (lhm/appendm {:v "b"} a/set-id)
+                             (lhm/appendm {:v "c"} a/set-id)
+                             (lhm/appendm {:v "d"} a/set-id)
+                             (lhm/insertm id-a {:v "_"} a/set-id)
+                             ))]
+      (is (= (-> v lhm/to-vector lhm/rebuild)
              v))))
   (testing "ignore ops on missing id"
     (is (= (-> (lhm/exec (w/mdo id <- (lhm/appendm {:v "a"})
