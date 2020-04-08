@@ -124,10 +124,14 @@
                                 (let [t (gensym "t")
                                       pass (gensym "pass")
                                       [x & xs] form
-                                      tagged? (and (symbol? x)
-                                                   (Character/isUpperCase (first (name x))))]
+                                      tagless? (= '__ x)
+                                      tagged? (or tagless?
+                                                  (and (symbol? x)
+                                                       (Character/isUpperCase (first (name x)))))]
                                   (if (not tagged?) form
-                                      (merge {::type `(~pass :guard (fn [~t] (= ~t (-> ~x meta :allpa-type))))}
+                                      (merge (if tagless? {}
+                                                 {::type
+                                                  `(~pass :guard (fn [~t] (= ~t (-> ~x meta :allpa-type))))})
                                              (apply hash-map (->> xs
                                                                   (reduce
                                                                    (fn [{:keys [kw? forms]} curr]

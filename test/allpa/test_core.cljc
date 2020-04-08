@@ -12,6 +12,9 @@
 (a/deftagged MyC [v1 v2 [def1 10 def2 20 def3 30]])
 (a/deftagged Namespaced [A B c])
 
+(a/deftagged VHolder1 [v])
+(a/deftagged VHolder2 [v])
+
 (a/defn-match match-f1
   [1 (a :guard #(= %1 2)) 3] :a
   [7] :b)
@@ -20,6 +23,8 @@
   (a/fn-match
    [1 2 3] :a
    [7] :b))
+
+(a/defn-match get-v [(__ v)] v)
 
 (deftest core-api
   (testing "deftagged"
@@ -39,6 +44,10 @@
                           (MyC 1 2 11 12 13 14)))
     (is (= (Namespaced 1 2 3) (a/mk ::Namespaced {::A 1 ::B 2 :c 3}))))
   (testing "match"
+    (is (= (get-v (VHolder1 10))
+           10))
+    (is (= (get-v (VHolder1 20))
+           20))
     (is (= (a/match 1 1 :good 2 :bad) :good))
     (is (= (a/match 2 1 :good 2 :bad) :bad))
     (is (= (a/match (MyB 1 2)
