@@ -41,6 +41,39 @@
   (fn [& args1]
     (apply f (concat args1 args2))))
 
+(defn snake [buckets a]
+  (let [size (count a)
+        safe-nth #(if (>= %1 size) nil (nth a %1))
+        hm (reduce (fn [hm i]
+                     (reduce (fn [hm j]
+                               (update hm i #(-> %1
+                                                 (conj (safe-nth (+ (* 2 buckets j) i)))
+                                                 (conj (safe-nth (+ (* 2 buckets j)
+                                                                    (- (* 2 buckets) i 1)))))))
+                             hm
+                             (range (inc (quot (quot size buckets) 2)))))
+                   {}
+                   (range buckets))]
+    (->> (range buckets)
+         (map #(->> (get hm %1) (remove nil?) reverse vec))
+         vec)))
+
+(defn unsnake [aa]
+  (let [nnth (fn [i j]
+               (let [a (if (>= i (count aa)) nil (nth aa i))]
+                 (if (>= j (count a)) nil (nth a j))))
+        outer (count aa)
+        inner (reduce #(max %1 (count %2)) 0 aa)]
+    (->> (range (inc (quot inner 2)))
+         (mapcat (fn [j]
+                   (concat (->> (range (inc outer))
+                                (map (fn [i] (nnth i (* 2 j))))
+                                (remove nil?))
+                           (->> (range outer -1 -1)
+                                (map (fn [i] (nnth i (inc (* 2 j)))))
+                                (remove nil?)))))
+         vec)))
+
 ;; macros
 
 #?(:clj

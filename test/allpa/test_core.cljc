@@ -27,6 +27,24 @@
 (a/defn-match get-v [(__ v)] v)
 
 (deftest core-api
+  (testing "snake"
+    (is (= (a/snake 2 [1 2 3 4 5 6 7 8])
+           [[1 4 5 8] [2 3 6 7]]))
+    (is (= (a/snake 2 [1 2 3 4 5 6 7])
+           [[1 4 5] [2 3 6 7]]))
+    (is (= (a/snake 2 [1 2 3 4 5 6 7 8 9])
+           [[1 4 5 8 9] [2 3 6 7]]))
+    (is (= (a/snake 4 [1 2 3 4 5 6 7 8 9])
+           [[1 8 9] [2 7] [3 6] [4 5]])))
+  (testing "unsnake"
+    (is (= (a/unsnake [[1 4 5 8] [2 3 6 7]])
+           [1 2 3 4 5 6 7 8]))
+    (is (= (a/unsnake [[1 4 5] [2 3 6 7]])
+           [1 2 3 4 5 6 7]))
+    (is (= (a/unsnake [[1 4 5 8 9] [2 3 6 7]])
+           [1 2 3 4 5 6 7 8 9]))
+    (is (= (a/unsnake [[1 8 9] [2 7] [3 6] [4 5]])
+           [1 2 3 4 5 6 7 8 9])))
   (testing "deftagged"
     (is (= (MyA) (a/mk ::MyA {})))
     (is (= (MyB 1 2) (a/mk ::MyB {:v1 1 :v2 2})))
