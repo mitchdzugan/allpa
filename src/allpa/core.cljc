@@ -160,25 +160,41 @@
                                       tagless? (= '__ x)
                                       tagged? (or tagless?
                                                   (and (symbol? x)
-                                                       (Character/isUpperCase (first (name x)))))]
+                                                       (Character/isUpperCase (first (name x)))))
+                                      {:keys [wrapper forms]} (reduce
+                                                               (fn [{:keys [wrapper done? next? forms] :as agg}
+                                                                    curr]
+                                                                 (cond
+                                                                   done? (update agg :forms #(conj %1 curr))
+                                                                   next? {:wrapper #(-> `(~%1 :as ~curr))
+                                                                          :done? true
+                                                                          :forms forms}
+                                                                   (= :as curr) {:done? false
+                                                                                 :next? true
+                                                                                 :forms forms}
+                                                                   :else (update agg :forms #(conj %1 curr))))
+                                                               {:wrapper identity
+                                                                :forms []}
+                                                               xs)]
                                   (if (not tagged?) form
-                                      (merge (if tagless? {}
-                                                 {::type
-                                                  `(~pass :guard (fn [~t] (= ~t (-> ~x meta :allpa-type))))})
-                                             (apply hash-map (->> xs
-                                                                  (reduce
-                                                                   (fn [{:keys [kw? forms]} curr]
-                                                                     (cond
-                                                                       (not kw?) {:kw? true
-                                                                                  :forms (conj forms curr)}
-                                                                       (keyword? curr) {:forms (conj forms curr)
-                                                                                        :kw? false}
-                                                                       :else {:kw? true
-                                                                              :forms (-> forms
-                                                                                         (conj (keyword curr))
-                                                                                         (conj curr))}))
-                                                                   {:kw? true :forms []})
-                                                                  :forms)))))))
+                                      (wrapper
+                                       (merge (if tagless? {}
+                                                  {::type
+                                                   `(~pass :guard (fn [~t] (= ~t (-> ~x meta :allpa-type))))})
+                                              (apply hash-map (->> forms
+                                                                   (reduce
+                                                                    (fn [{:keys [kw? forms]} curr]
+                                                                      (cond
+                                                                        (not kw?) {:kw? true
+                                                                                   :forms (conj forms curr)}
+                                                                        (keyword? curr) {:forms (conj forms curr)
+                                                                                         :kw? false}
+                                                                        :else {:kw? true
+                                                                               :forms (-> forms
+                                                                                          (conj (keyword curr))
+                                                                                          (conj curr))}))
+                                                                    {:kw? true :forms []})
+                                                                   :forms))))))))
                                         form)))
                    (range))))))
 

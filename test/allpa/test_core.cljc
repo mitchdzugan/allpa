@@ -25,6 +25,7 @@
    [7] :b))
 
 (a/defn-match get-v [(__ v)] v)
+(a/defn-match get-self [(__ :as self)] self)
 
 (deftest core-api
   (testing "snake"
@@ -64,8 +65,12 @@
   (testing "match"
     (is (= (get-v (VHolder1 10))
            10))
-    (is (= (get-v (VHolder1 20))
+    (is (= (get-v (VHolder2 20))
            20))
+    (is (= (get-self (VHolder1 10))
+           (VHolder1 10)))
+    (is (= (get-self (VHolder2 20))
+           (VHolder2 20)))
     (is (= (a/match 1 1 :good 2 :bad) :good))
     (is (= (a/match 2 1 :good 2 :bad) :bad))
     (is (= (a/match (MyB 1 2)
