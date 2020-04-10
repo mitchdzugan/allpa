@@ -123,6 +123,12 @@
     (is (= (a/p2 0) 1))
     (is (= (a/p2 2) 4))
     (is (= (a/p2 5) 32)))
+  (testing "map-values"
+    (is (= (a/map-values vector {:a 1 :b 2})
+           {:a [1 :a] :b [2 :b]})))
+  (testing "map-keys"
+    (is (= (a/map-keys vector {:a 1 :b 2})
+           {[1 :a] 1 [2 :b] 2})))
   (testing "id"
     (is (= (-> {} a/id) nil))
     (is (= (-> {} (a/set-id 1) a/id) 1)))
