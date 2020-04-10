@@ -4,7 +4,7 @@
 [![Clojars Project](https://img.shields.io/clojars/v/allpa.svg)](https://clojars.org/allpa)
 
 ```clj
-[allpa "0.1.21"]
+[allpa "0.1.22"]
 ```
 
 **allpa** [aʎpa] *(Quechuan)* • noun
