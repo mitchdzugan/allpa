@@ -214,3 +214,6 @@
      (let [splat (gensym "splat")]
        `(fn [& ~splat]
           (match (vec ~splat) ~@specs)))))
+
+(deftagged Ok [result])
+(deftagged Fail [error])
