@@ -9,7 +9,8 @@
                                                 match
                                                 defn-match
                                                 fn-match
-                                                defprotomethod]]
+                                                defprotomethod
+                                                extprotomethod]]
                             [net.cgrand.macrovich :as macros]
                             [cljs.core.match])))
 
@@ -235,3 +236,12 @@
                                 (ensure-vec types)))
                 (partition 2 defs))))))
 
+
+#?(:clj
+   (defmacro extprotomethod [proto method args & defs]
+     `(extend-protocol ~proto
+        ~@(mapcat (fn [[types body]]
+                    (mapcat (fn [type]
+                              [type `(~method ~args ~body)])
+                            (ensure-vec types)))
+            (partition 2 defs)))))
