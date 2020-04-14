@@ -4,10 +4,14 @@
                     [clojure.core.match]
                     [net.cgrand.macrovich :as macros])
      :cljs (:require [cljs.core.match]))
-  #?(:cljs (:require-macros [allpa.core :refer [varg# deftagged match defn-match fn-match]]
+  #?(:cljs (:require-macros [allpa.core :refer [varg#
+                                                deftagged
+                                                match
+                                                defn-match
+                                                fn-match
+                                                defprotomethod]]
                             [net.cgrand.macrovich :as macros]
-                            [cljs.core.match]
-                            )))
+                            [cljs.core.match])))
 
 (def clj? #?(:clj true :cljs false))
 
@@ -217,3 +221,16 @@
 
 (deftagged Ok [result])
 (deftagged Fail [error])
+
+#?(:clj
+   (defmacro defprotomethod [method args & defs]
+     `(do (defprotocol ~(symbol (str "proto-" (name method)))
+            (~method ~args))
+          (extend-protocol ~(symbol (str "proto-" (name method)))
+            ~@(map (fn [ind def]
+                     (if (even? ind)
+                       def
+                       `(~method ~args ~def)))
+                (range)
+                defs)))))
+
