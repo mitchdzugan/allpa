@@ -222,15 +222,16 @@
 (deftagged Ok [result])
 (deftagged Fail [error])
 
+(defn ensure-vec [mv] (if (vector? mv) mv [mv]))
+
 #?(:clj
    (defmacro defprotomethod [method args & defs]
      `(do (defprotocol ~(symbol (str "proto-" (name method)))
             (~method ~args))
           (extend-protocol ~(symbol (str "proto-" (name method)))
-            ~@(map (fn [ind def]
-                     (if (even? ind)
-                       def
-                       `(~method ~args ~def)))
-                (range)
-                defs)))))
+            ~@(mapcat (fn [[types body]]
+                        (mapcat (fn [type]
+                                  [type `(~method ~args ~body)])
+                                (ensure-vec types)))
+                (partition 2 defs))))))
 

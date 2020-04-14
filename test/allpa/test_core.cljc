@@ -27,7 +27,21 @@
 (a/defn-match get-v [(__ v)] v)
 (a/defn-match get-self [(__ :as self)] self)
 
+(defrecord A [val])
+(defrecord B [val])
+(defrecord C [val])
+
+(a/defprotomethod proto [{:keys [val]}]
+  [A B]
+  (inc val)
+  C
+  (dec val))
+
 (deftest core-api
+  (testing "defprotomethod"
+    (is (= (proto (->A 1)) 2))
+    (is (= (proto (->B 1)) 2))
+    (is (= (proto (->C 1)) 0)))
   (testing "snake"
     (is (= (a/snake 2 [1 2 3 4 5 6 7 8])
            [[1 4 5 8] [2 3 6 7]]))
