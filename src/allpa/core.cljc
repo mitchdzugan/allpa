@@ -1,12 +1,9 @@
 (ns allpa.core
   #?(:clj (:require [clojure.string :as string]
                     [clojure.walk :as walk]
-                    [clojure.core.match]
-                    [net.cgrand.macrovich :as macros])
-     :cljs (:require [cljs.core.match]))
+                    [net.cgrand.macrovich :as macros]))
   #?(:cljs (:require-macros [allpa.core :refer [varg# defprotomethod]]
-                            [net.cgrand.macrovich :as macros]
-                            [cljs.core.match])))
+                            [net.cgrand.macrovich :as macros])))
 
 (def clj? #?(:clj true :cljs false))
 
