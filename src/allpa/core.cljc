@@ -4,12 +4,7 @@
                     [clojure.core.match]
                     [net.cgrand.macrovich :as macros])
      :cljs (:require [cljs.core.match]))
-  #?(:cljs (:require-macros [allpa.core :refer [varg#
-                                                deftagged
-                                                match
-                                                defn-match
-                                                fn-match
-                                                defprotomethod]]
+  #?(:cljs (:require-macros [allpa.core :refer [varg# defprotomethod]]
                             [net.cgrand.macrovich :as macros]
                             [cljs.core.match])))
 
@@ -103,124 +98,14 @@
 
 (def p2 (partial power 2))
 
-
-;; i hate defrecord/defprotocol
-
-(def mk (varg# (assoc %2 ::type %1)))
-
-(def Default ::Default)
-
-(def type ::type)
+;; other
 
 (def id ::id)
 
 (def set-id #(assoc %1 ::id %2))
 
-#?(:clj
-   (defmacro deftagged [label argv-raw]
-     (let [required (remove vector? argv-raw)
-           defaults (->> argv-raw
-                         (filter vector?)
-                         (mapcat #(-> %1))
-                         (map #(-> [%1 %2]) (range))
-                         (filter (fn [[id _]] (odd? id)))
-                         (map #(nth %1 1)))
-           argv (->> argv-raw
-                     (filter vector?)
-                     (mapcat #(-> %1))
-                     (map #(-> [%1 %2]) (range))
-                     (filter (fn [[id _]] (even? id)))
-                     (map #(nth %1 1))
-                     (concat required))
-           splat (gensym "splat")
-           mkkw #(if (Character/isUpperCase (first (str %1)))
-                   (keyword (str *ns*) (str %1))
-                   (keyword %1))]
-       `(def ~label
-          (with-meta
-            (fn [& ~splat]
-              (when (< (count ~splat) ~(count required))
-                (throw (Err ~(str *ns* "/" label " must have at least " (count required) " arguments"))))
-              (when (> (count ~splat) ~(count argv))
-                (throw (Err ~(str *ns* "/" label " can have no more than " (count argv) " arguments"))))
-              (mk ~(keyword (str *ns*) (name label))
-                  ~(if (empty? argv) '{}
-                       `(let [[~@argv] (concat ~splat (drop (- (count ~splat) ~(count required))
-                                                            [~@defaults]))]
-                          (hash-map ~@(mapcat #(-> [(mkkw %1) %1]) argv))))))
-            {:allpa-type ~(keyword (str *ns*) (name label))})))))
-
-#?(:clj
-   (defmacro match [v & specs]
-     `(~(macros/case :clj 'clojure.core.match/match
-                     :cljs 'cljs.core.match/match)
-       ~v
-       ~@(->> specs
-              (map (fn [id form]
-                     (if (odd? id) form
-                         (walk/postwalk
-                          (fn [form]
-                            (if (not (list? form)) form
-                                (let [t (gensym "t")
-                                      pass (gensym "pass")
-                                      [x & xs] form
-                                      tagless? (= '__ x)
-                                      tagged? (or tagless?
-                                                  (and (symbol? x)
-                                                       (Character/isUpperCase (first (name x)))))
-                                      {:keys [wrapper forms]} (reduce
-                                                               (fn [{:keys [wrapper done? next? forms] :as agg}
-                                                                    curr]
-                                                                 (cond
-                                                                   done? (update agg :forms #(conj %1 curr))
-                                                                   next? {:wrapper #(-> `(~%1 :as ~curr))
-                                                                          :done? true
-                                                                          :forms forms}
-                                                                   (= :as curr) {:done? false
-                                                                                 :next? true
-                                                                                 :forms forms}
-                                                                   :else (update agg :forms #(conj %1 curr))))
-                                                               {:wrapper identity
-                                                                :forms []}
-                                                               xs)]
-                                  (if (not tagged?) form
-                                      (wrapper
-                                       (merge (if tagless? {}
-                                                  {::type
-                                                   `(~pass :guard (fn [~t] (= ~t (-> ~x meta :allpa-type))))})
-                                              (apply hash-map (->> forms
-                                                                   (reduce
-                                                                    (fn [{:keys [kw? forms]} curr]
-                                                                      (cond
-                                                                        (not kw?) {:kw? true
-                                                                                   :forms (conj forms curr)}
-                                                                        (keyword? curr) {:forms (conj forms curr)
-                                                                                         :kw? false}
-                                                                        :else {:kw? true
-                                                                               :forms (-> forms
-                                                                                          (conj (keyword curr))
-                                                                                          (conj curr))}))
-                                                                    {:kw? true :forms []})
-                                                                   :forms))))))))
-                                        form)))
-                   (range))))))
-
-#?(:clj
-   (defmacro defn-match
-     [label & specs]
-     (let [splat (gensym "splat")]
-       `(defn ~label [& ~splat]
-          (match (vec ~splat) ~@specs)))))
-
-#?(:clj
-   (defmacro fn-match
-     [& specs]
-     (let [splat (gensym "splat")]
-       `(fn [& ~splat]
-          (match (vec ~splat) ~@specs)))))
-
-(deftagged Ok [result])
-(deftagged Fail [error])
+(defrecord Ok [result])
+(defrecord Fail [error])
 
 (defn ensure-vec [mv] (if (vector? mv) mv [mv]))
 
