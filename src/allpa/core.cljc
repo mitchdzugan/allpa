@@ -9,8 +9,7 @@
                                                 match
                                                 defn-match
                                                 fn-match
-                                                defprotomethod
-                                                extprotomethod]]
+                                                defprotomethod]]
                             [net.cgrand.macrovich :as macros]
                             [cljs.core.match])))
 
@@ -232,16 +231,25 @@
           (extend-protocol ~(symbol (str "proto-" (name method)))
             ~@(mapcat (fn [[types body]]
                         (mapcat (fn [type]
-                                  [type `(~method ~args ~body)])
+                                  (let [stype (str type)
+                                        type
+                                        (if (string/starts-with? stype "!")
+                                          (let [tname (name type)
+                                                tname (cond
+                                                        (string/starts-with? tname "->") (subs tname 2)
+                                                        (string/starts-with? tname "!->") (subs tname 3)
+                                                        (string/starts-with? tname "!") (subs tname 1)
+                                                        :else tname)
+                                                cons (symbol (when (namespace type)
+                                                               (subs (namespace type) 1))
+                                                             (str "->" tname))]
+                                            (symbol (str
+                                                     (-> cons resolve meta :ns str
+                                                         (string/replace #"-" "_"))
+                                                     "."
+                                                     tname)))
+                                          type)]
+                                    [type `(~method ~args ~body)]))
                                 (ensure-vec types)))
                 (partition 2 defs))))))
 
-
-#?(:clj
-   (defmacro extprotomethod [proto method args & defs]
-     `(extend-protocol ~proto
-        ~@(mapcat (fn [[types body]]
-                    (mapcat (fn [type]
-                              [type `(~method ~args ~body)])
-                            (ensure-vec types)))
-            (partition 2 defs)))))

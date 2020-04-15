@@ -4,6 +4,7 @@
       :cljs [cljs.test :refer-macros [is are deftest testing use-fixtures]])
    [wayra.core :as w]
    [allpa.core :as a]
+   [allpa.test-rec :as tr :refer [->Test3 ->Test4]]
    [allpa.dep :as d :refer [Dep]]
    [allpa.linked-hash-map :as lhm]))
 
@@ -32,6 +33,11 @@
 (defrecord C [val])
 
 (a/defprotomethod proto [{:keys [val]}]
+  !tr/->Test1 1
+  !tr/Test2 2
+  !->Test3 3
+  !Test4 4
+
   [A B]
   (inc val)
   C
@@ -41,7 +47,11 @@
   (testing "defprotomethod"
     (is (= (proto (->A 1)) 2))
     (is (= (proto (->B 1)) 2))
-    (is (= (proto (->C 1)) 0)))
+    (is (= (proto (->C 1)) 0))
+    (is (= (proto (tr/->Test1)) 1))
+    (is (= (proto (tr/->Test2)) 2))
+    (is (= (proto (tr/->Test3)) 3))
+    (is (= (proto (tr/->Test4)) 4)))
   (testing "snake"
     (is (= (a/snake 2 [1 2 3 4 5 6 7 8])
            [[1 4 5 8] [2 3 6 7]]))
