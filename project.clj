@@ -1,4 +1,4 @@
-(defproject allpa "0.1.28"
+(defproject allpa "0.1.29"
   :description "FIXME: write description"
   :url "https://github.com/mitchdzugan/allpa"
   :license {:name "Eclipse Public License"
