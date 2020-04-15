@@ -227,7 +227,7 @@
 #?(:clj
    (defmacro defprotomethod [method args & defs]
      `(do (defprotocol ~(symbol (str "proto-" (name method)))
-            (~method ~args))
+            ~(clojure.core/list method (vec (map (fn [_] (gensym "arg")) args))))
           (extend-protocol ~(symbol (str "proto-" (name method)))
             ~@(mapcat (fn [[types body]]
                         (mapcat (fn [type]
@@ -243,11 +243,15 @@
                                                 cons (symbol (when (namespace type)
                                                                (subs (namespace type) 1))
                                                              (str "->" tname))]
-                                            (symbol (str
-                                                     (-> cons resolve meta :ns str
-                                                         (string/replace #"-" "_"))
-                                                     "."
-                                                     tname)))
+                                            (macros/case :clj (symbol (str
+                                                                       (-> cons resolve meta :ns str
+                                                                           (string/replace #"-" "_"))
+                                                                       "."
+                                                                       tname))
+                                                         :cljs (symbol (or (namespace cons)
+                                                                           (str (get (-> &env :ns :uses)
+                                                                                     (symbol (name cons)))))
+                                                                       (subs (name cons) 2))))
                                           type)]
                                     [type `(~method ~args ~body)]))
                                 (ensure-vec types)))
