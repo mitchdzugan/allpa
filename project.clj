@@ -7,7 +7,7 @@
   [[org.clojure/clojure "1.10.1" :scope "provided"]
    [org.clojure/clojurescript "1.10.597" :scope "provided"]
    [net.cgrand/macrovich "0.2.1"]
-   [wayra "0.0.21"]]
+   [wayra "0.0.22"]]
 
   :plugins
   [[lein-cljsbuild "1.1.7"]
