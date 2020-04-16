@@ -150,6 +150,15 @@
     (is (= (-> lhm/linked-hash-map
                (lhm/take-while #(< % 3)))
            [])))
+  (testing "map"
+    (is (= (-> (lhm/exec (w/mdo (lhm/appendm 1)
+                                (lhm/appendm 2)
+                                (lhm/appendm 3)
+                                (lhm/appendm 4)
+                                (lhm/appendm 5)))
+               ((partial lhm/map inc))
+               (lhm/to-vector)))
+           [2 3 4 5 6]))
   (testing "rebuild"
     (let [v (lhm/exec (w/mdo (lhm/appendm {:v "a"} a/set-id)
                              (lhm/appendm {:v "b"} a/set-id)

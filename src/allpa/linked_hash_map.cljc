@@ -33,6 +33,9 @@
                 (assoc ::next-id (inc id))
                 (assoc ::last id))})))
 
+(defn map [f lhm]
+  (update lhm ::hash-map #(a/map-values (fn [v _] (f (::val v))) %1)))
+
 (defn rebuild
   ([v] (rebuild v a/id))
   ([v get-id]
