@@ -6,6 +6,8 @@
 
 (def linked-hash-map {::next-id 1 ::hash-map {}})
 
+(def empty linked-hash-map)
+
 (defn empty? [lhm] (-> lhm (get-in [::hash-map (::first lhm)]) nil?))
 
 (defn get [lhm id] (get-in lhm [::hash-map id ::val]))
