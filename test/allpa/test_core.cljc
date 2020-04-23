@@ -81,6 +81,13 @@
   (testing "map-keys"
     (is (= (a/map-keys vector {:a 1 :b 2})
            {[1 :a] 1 [2 :b] 2})))
+  (testing "flip"
+    (is (= ((a/flip quot) 3 6)
+           2))
+    (is (= (->> {:a 1 :b 2 :c 3}
+                ((a/flip dissoc) :b :c)
+                ((a/flip update) :a inc))
+           {:a 2})))
   (testing "id"
     (is (= (-> {} a/id) nil))
     (is (= (-> {} (a/set-id 1) a/id) 1)))

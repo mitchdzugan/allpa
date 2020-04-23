@@ -9,6 +9,10 @@
 
 ;; util
 
+(defn flip [f]
+  (fn [& args]
+    (apply f (last args) (->> args reverse (drop 1) reverse))))
+
 (defn parse-int
   ([s] (parse-int s nil))
   ([s default]
