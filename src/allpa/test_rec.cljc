@@ -1,6 +1,6 @@
-(ns allpa.test-rec)
+(ns allpa.test-rec (:require [allpa.core :as a]))
 
-(defrecord Test1 [])
-(defrecord Test2 [])
-(defrecord Test3 [])
-(defrecord Test4 [])
+(a/deftagged Test1 [])
+(a/deftagged Test2 [])
+(a/deftagged Test3 [])
+(a/deftagged Test4 [])

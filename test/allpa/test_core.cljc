@@ -7,9 +7,9 @@
    [allpa.test-rec :as tr :refer [->Test3 ->Test4]]
    [allpa.linked-hash-map :as lhm]))
 
-(defrecord A [val])
-(defrecord B [val])
-(defrecord C [val])
+(a/deftagged A [val])
+(a/deftagged B [val])
+(a/deftagged C [val])
 
 (a/defprotomethod proto [{:keys [val]}]
   !tr/->Test1 1
@@ -23,6 +23,10 @@
   (dec val))
 
 (deftest core-api
+  (testing "tag"
+    (is (= (a/tag (->A 1)) ::A))
+    (is (= (a/tag (tr/->Test1)) ::tr/Test1))
+    )
   (testing "defprotomethod"
     (is (= (proto (->A 1)) 2))
     (is (= (proto (->B 1)) 2))

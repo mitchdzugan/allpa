@@ -2,7 +2,7 @@
   #?(:clj (:require [clojure.string :as string]
                     [clojure.walk :as walk]
                     [net.cgrand.macrovich :as macros]))
-  #?(:cljs (:require-macros [allpa.core :refer [varg# defprotomethod]]
+  #?(:cljs (:require-macros [allpa.core :refer [varg# defprotomethod deftagged]]
                             [net.cgrand.macrovich :as macros])))
 
 (def clj? #?(:clj true :cljs false))
@@ -109,6 +109,15 @@
 (defrecord Fail [error])
 
 (defn ensure-vec [mv] (if (vector? mv) mv [mv]))
+
+(defprotocol Tagged
+  (tag [_] "keyword representing record's type"))
+
+#?(:clj
+   (defmacro deftagged [sym args]
+     `(defrecord ~sym ~args
+        Tagged
+        (tag [_] ~(keyword (str *ns*) (name sym))))))
 
 #?(:clj
    (defmacro defprotomethod [method args & defs]
