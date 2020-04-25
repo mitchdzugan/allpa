@@ -117,7 +117,7 @@
    (defmacro deftagged [sym args]
      `(defrecord ~sym ~args
         Tagged
-        (tag [_] ~(keyword (str *ns*) (name sym))))))
+        (tag [_#] ~(keyword (str *ns*) (name sym))))))
 
 #?(:clj
    (defmacro defprotomethod [method args & defs]
