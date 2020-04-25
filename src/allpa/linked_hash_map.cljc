@@ -1,10 +1,12 @@
 (ns allpa.linked-hash-map
-  (:require [allpa.core :as a]
+  (:require [allpa.util :as a]
             [wayra.core :as w :refer [defnm]]))
 
 ;; linked-hash-map
 
-(def linked-hash-map {::next-id 1 ::hash-map {}})
+(def linked-hash-map {::lhm? true ::next-id 1 ::hash-map {}})
+
+(def next-id ::next-id)
 
 (def empty linked-hash-map)
 

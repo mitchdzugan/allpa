@@ -11,6 +11,10 @@
 (a/deftagged B [val])
 (a/deftagged C [val])
 
+(extend-protocol a/Simplify
+  A
+  (simple [{:keys [val]}] (str "A:" val)))
+
 (a/defprotomethod proto [{:keys [val]}]
   !tr/->Test1 1
   !tr/Test2 2
@@ -22,7 +26,50 @@
   C
   (dec val))
 
+(def f-called (atom 0))
+(defn f [i]
+  (swap! f-called inc)
+  (inc i))
+
+(def m-f (a/memoize f 3))
+
 (deftest core-api
+  (testing "simplify"
+    (is (= (-> lhm/empty
+               (lhm/append- 1)
+               (lhm/append- (-> lhm/empty
+                                (lhm/append- 2)
+                                (lhm/append- (->A 3))
+                                (lhm/append- 4)))
+               (lhm/append- 5)
+               a/simplify)
+           [1 [2 "A:3" 4] 5])))
+  (testing "memoize"
+    (is (= 1 (m-f 0))) (is (= 1 @f-called))
+    (is (= 2 (m-f 1))) (is (= 2 @f-called))
+    (is (= 3 (m-f 2))) (is (= 3 @f-called))
+    (is (= 1 (m-f 0))) (is (= 3 @f-called))
+    (is (= 2 (m-f 1))) (is (= 3 @f-called))
+    (is (= 3 (m-f 2))) (is (= 3 @f-called))
+    (is (= 4 (m-f 3))) (is (= 4 @f-called))
+    (is (= 3 (m-f 2))) (is (= 4 @f-called))
+    (is (= 2 (m-f 1))) (is (= 4 @f-called))
+    ;; 0 was LRU at time of the 4th input
+    ;; so it was removed from memory
+    (is (= 1 (m-f 0))) (is (= 5 @f-called)))
+  (testing "queue"
+    (is (= (->> a/queue
+                ((a/flip conj) 1)
+                ((a/flip conj) 2)
+                ((a/flip conj) 3)
+                ((a/flip conj) 4)
+                ((a/flip conj) 5)
+                pop
+                ((a/flip conj) 6)
+                (a/filter-queue #(> % 3))
+                ((a/flip conj) 3)
+                vec)
+           [4 5 6 3])))
   (testing "tag"
     (is (= (a/tag (->A 1)) ::A))
     (is (= (a/tag (tr/->Test1)) ::tr/Test1))

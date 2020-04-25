@@ -1,13 +1,73 @@
 (ns allpa.core
+  (:require [allpa.util :as util]
+            [allpa.linked-hash-map :as lhm]
+            [clojure.walk :as walk])
   #?(:clj (:require [clojure.string :as string]
-                    [clojure.walk :as walk]
                     [net.cgrand.macrovich :as macros]))
   #?(:cljs (:require-macros [allpa.core :refer [varg# defprotomethod deftagged]]
                             [net.cgrand.macrovich :as macros])))
 
-(def clj? #?(:clj true :cljs false))
-
 ;; util
+(def map-values util/map-values)
+(def map-keys util/map-keys)
+(def id util/id)
+(def set-id util/set-id)
+
+(defprotocol Simplify
+  (simple [this] "return a simpler version of the object. usually for printing"))
+
+(extend-protocol Simplify
+  #?(:clj clojure.lang.PersistentArrayMap :cljs cljs.core.PersistentArrayMap)
+  (simple [m]
+    (if (::lhm/lhm? m) (lhm/to-vector m) m)))
+
+(defn simplify [obj]
+  (walk/postwalk #(if (satisfies? Simplify %) (simple %) %) obj))
+
+(defn curry [f & args2]
+  (fn [& args1]
+    (apply f (concat args1 args2))))
+
+(def queue
+  #?(:clj (clojure.lang.PersistentQueue/EMPTY)
+     :cljs #queue []))
+
+(defn filter-queue
+  ([p q] (filter-queue p q queue))
+  ([p q c]
+   (if (empty? q)
+     c
+     (let [v (peek q)
+           next (pop q)]
+       (filter-queue p next (if (p v) (conj c v) c))))))
+
+(defn memoize
+  ([f] (memoize f 10))
+  ([f size]
+   (let [has (atom {})
+         saved (atom {})
+         lru (atom queue)]
+     (fn [& args]
+       (let [h (hash args)
+             has? (get @has h)]
+         (cond
+           has?
+           (do (swap! lru #(-> (filter-queue (curry not= h) %)
+                               (conj h)))
+               (get @saved h))
+           (= size (count @saved))
+           (let [res (apply f args)
+                 delete (peek @lru)]
+             (swap! has #(-> % (dissoc delete) (assoc h true)))
+             (swap! saved #(-> % (dissoc delete) (assoc h res)))
+             (swap! lru #(-> % pop (conj h)))
+             res)
+           :else
+           (let [res (apply f args)]
+             (swap! has #(assoc % h true))
+             (swap! saved #(assoc % h res))
+             (swap! lru #(conj % h))
+             res)))))))
 
 (defn flip [f]
   (fn [& args]
@@ -36,10 +96,6 @@
   (if (< n 26)
     (num-lookup n)
     (str (alpha-num (dec (quot n 26))) (num-lookup (mod n 26)))))
-
-(defn curry [f & args2]
-  (fn [& args1]
-    (apply f (concat args1 args2))))
 
 (defn snake [buckets a]
   (let [size (count a)
@@ -74,8 +130,6 @@
                                 (remove nil?)))))
          vec)))
 
-(defn map-values [f m] (reduce-kv #(assoc %1 %2 (f %3 %2)) {} m))
-(defn map-keys   [f m] (reduce-kv #(assoc %1 (f %3 %2) %3) {} m))
 
 ;; macros
 
@@ -100,10 +154,6 @@
 (def p2 (partial power 2))
 
 ;; other
-
-(def id ::id)
-
-(def set-id #(assoc %1 ::id %2))
 
 (defrecord Ok [result])
 (defrecord Fail [error])
