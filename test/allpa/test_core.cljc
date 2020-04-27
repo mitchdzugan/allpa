@@ -132,6 +132,11 @@
   (testing "map-keys"
     (is (= (a/map-keys vector {:a 1 :b 2})
            {[1 :a] 1 [2 :b] 2})))
+  (testing "index-by"
+    (is (= (a/index-by :a [{:a 1 :msg "h"} {:a 2 :msg "i"} {:a 3 :msg "!"}])
+           {1 {:a 1 :msg "h"}
+            2 {:a 2 :msg "i"}
+            3 {:a 3 :msg "!"}})))
   (testing "flip"
     (is (= ((a/flip quot) 3 6)
            2))

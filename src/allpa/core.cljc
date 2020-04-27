@@ -13,6 +13,11 @@
 (def id util/id)
 (def set-id util/set-id)
 
+(defn index-by [f coll]
+  (->> coll
+       (group-by f)
+       (map-values (fn [v _] (first v)))))
+
 (defprotocol Simplify
   (simple [this] "return a simpler version of the object. usually for printing"))
 
