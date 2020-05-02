@@ -7,7 +7,7 @@
   [[org.clojure/clojure "1.10.1" :scope "provided"]
    [org.clojure/clojurescript "1.10.597" :scope "provided"]
    [net.cgrand/macrovich "0.2.1"]
-   [wayra "0.0.23"]]
+   [wayra "0.0.24"]]
 
   :plugins
   [[lein-cljsbuild "1.1.7"]
@@ -41,7 +41,7 @@
    {:dependencies
     [[ring-server "0.5.0"]
      [ring-webjars "0.2.0"]
-     [ring "1.8.0"]
+     [ring "1.8.1"]
      [ring/ring-defaults "0.3.2"]
      [metosin/reitit "0.4.2"]
      [metosin/reitit-ring "0.4.2"]
