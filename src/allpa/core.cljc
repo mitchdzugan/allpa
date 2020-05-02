@@ -1,7 +1,8 @@
 (ns allpa.core
   (:require [allpa.util :as util]
             [allpa.linked-hash-map :as lhm]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            #?(:cljs [cognitect.transit :as t]))
   #?(:clj (:require [clojure.string :as string]
                     [net.cgrand.macrovich :as macros]))
   #?(:cljs (:require-macros [allpa.core :refer [varg# defprotomethod deftagged]]
@@ -160,19 +161,53 @@
 
 ;; other
 
-(defrecord Ok [result])
-(defrecord Fail [error])
-
 (defn ensure-vec [mv] (if (vector? mv) mv [mv]))
 
 (defprotocol Tagged
   (tag [_] "keyword representing record's type"))
 
+(def w-handlers (atom {}))
+(def r-handlers (atom {}))
+
+#?(:cljs
+   (deftype TaggedHandler []
+     Object
+     (tag [this v] (str (allpa.core/tag v)))
+     (rep [this v] (into {} v))
+     (stringRep [this v] nil)))
+
+#?(:cljs
+   (defn writer
+     ([t] (writer t {}))
+     ([t opt] (t/writer t (update opt :handlers (partial merge @w-handlers))))))
+
+#?(:cljs
+   (defn reader
+     ([t] (reader t {}))
+     ([t opt] (t/reader t (update opt :handlers (partial merge @r-handlers))))))
+
 #?(:clj
    (defmacro deftagged [sym args]
-     `(defrecord ~sym ~args
-        Tagged
-        (tag [_#] ~(keyword (str *ns*) (name sym))))))
+     (let [curr-ns (str *ns*)
+           as-kw (keyword curr-ns (name sym))
+
+           update-handlers
+           [`(swap! w-handlers
+                    (fn [curr#]
+                      (assoc curr# ~sym (->TaggedHandler))))
+            `(swap! r-handlers
+                    (fn [curr#]
+                      (assoc curr#
+                             ~(str as-kw)
+                             (fn [map#]
+                               (~(symbol curr-ns (str "map->" (name sym)))
+                                map#)))))]]
+       `(do
+          (defrecord ~sym ~args
+            Tagged
+            (tag [_#] ~as-kw))
+          ~@(macros/case :clj []
+                         :cljs update-handlers)))))
 
 #?(:clj
    (defmacro defprotomethod [method args & defs]
@@ -207,3 +242,5 @@
                                 (ensure-vec types)))
                 (partition 2 defs))))))
 
+(deftagged Ok [result])
+(deftagged Fail [error])

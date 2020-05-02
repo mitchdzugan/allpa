@@ -5,11 +5,19 @@
    [wayra.core :as w]
    [allpa.core :as a]
    [allpa.test-rec :as tr :refer [->Test3 ->Test4]]
+   #?(:cljs [cognitect.transit :as t])
    [allpa.linked-hash-map :as lhm]))
 
 (a/deftagged A [val])
 (a/deftagged B [val])
 (a/deftagged C [val])
+
+#?(:cljs
+   (let [w (a/writer :json)
+         r (a/reader :json)]
+     (println (get (t/read r (t/write w {(->A 2) (->B 3)})) (->A 2)))
+     (println (t/read r (t/write w (->A 1))))
+     (println (t/read r (t/write w (->A (->B (->C (->Test4)))))))))
 
 (extend-protocol a/Simplify
   A
