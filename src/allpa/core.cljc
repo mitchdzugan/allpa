@@ -103,6 +103,18 @@
     (num-lookup n)
     (str (alpha-num (dec (quot n 26))) (num-lookup (mod n 26)))))
 
+(defn ordinal [n]
+  (let [mod10 (mod n 10)
+        mod100 (mod n 100)]
+    (str n (cond
+             (and (= 1 mod10)
+                  (not= 11 mod100)) "st"
+             (and (= 2 mod10)
+                  (not= 12 mod100)) "nd"
+             (and (= 3 mod10)
+                  (not= 13 mod100)) "rd"
+             :else "th"))))
+
 (defn snake [buckets a]
   (let [size (count a)
         safe-nth #(if (>= %1 size) nil (nth a %1))
