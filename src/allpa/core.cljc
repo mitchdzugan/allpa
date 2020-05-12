@@ -232,6 +232,8 @@
                          (#(get % :ind 0)))]
        `(do (defprotocol ~proto-sym
               ~(clojure.core/list proto-fn [(gensym "_")]))
+            (defn ~method [& args#]
+              (apply (~proto-fn (nth args# ~this-ind)) args#))
             (extend-protocol ~proto-sym
               ~@(mapcat (fn [[types body]]
                           (mapcat (fn [type]
@@ -259,9 +261,7 @@
                                             type)]
                                       [type `(~proto-fn [_#] (fn ~args ~body))]))
                                   (ensure-vec types)))
-                  (partition 2 defs)))
-            (defn ~method [& args#]
-              (apply (~proto-fn (nth args# ~this-ind)) args#))))))
+                  (partition 2 defs)))))))
 
 (deftagged Ok [result])
 (deftagged Fail [error])

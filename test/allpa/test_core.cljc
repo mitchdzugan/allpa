@@ -27,7 +27,7 @@
   !tr/->Test1 1
   !tr/Test2 2
   !->Test3 3
-  !Test4 4
+  !Test4 (inc (proto (tr/->Test3)))
 
   [A B]
   (inc val)
