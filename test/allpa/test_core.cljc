@@ -34,6 +34,17 @@
   C
   (dec val))
 
+(a/defprotomethod proto-scnd [a ^this {:keys [val]}]
+  !tr/->Test1 (+ 1 a)
+  !tr/Test2 (+ 2 a)
+  !->Test3 (+ 3 a)
+  !Test4 (+ 4 a)
+
+  [A B]
+  (+ a (inc val))
+  C
+  (+ a (dec val)))
+
 (def f-called (atom 0))
 (defn f [i]
   (swap! f-called inc)
@@ -89,7 +100,14 @@
     (is (= (proto (tr/->Test1)) 1))
     (is (= (proto (tr/->Test2)) 2))
     (is (= (proto (tr/->Test3)) 3))
-    (is (= (proto (tr/->Test4)) 4)))
+    (is (= (proto (tr/->Test4)) 4))
+    (is (= (proto (->A 1)) (proto-scnd 0 (->A 1))))
+    (is (= (proto (->B 1)) (proto-scnd 0 (->B 1))))
+    (is (= (proto (->C 1)) (proto-scnd 0 (->C 1))))
+    (is (= (proto (tr/->Test1)) (proto-scnd 0 (tr/->Test1))))
+    (is (= (proto (tr/->Test2)) (proto-scnd 0 (tr/->Test2))))
+    (is (= (proto (tr/->Test3)) (proto-scnd 0 (tr/->Test3))))
+    (is (= (proto (tr/->Test4)) (proto-scnd 0 (tr/->Test4)))))
   (testing "snake"
     (is (= (a/snake 2 [1 2 3 4 5 6 7 8])
            [[1 4 5 8] [2 3 6 7]]))

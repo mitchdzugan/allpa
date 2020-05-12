@@ -223,36 +223,45 @@
 
 #?(:clj
    (defmacro defprotomethod [method args & defs]
-     `(do (defprotocol ~(symbol (str "proto-" (name method)))
-            ~(clojure.core/list method (vec (map (fn [_] (gensym "arg")) args))))
-          (extend-protocol ~(symbol (str "proto-" (name method)))
-            ~@(mapcat (fn [[types body]]
-                        (mapcat (fn [type]
-                                  (let [stype (str type)
-                                        type
-                                        (if (string/starts-with? stype "!")
-                                          (let [tname (name type)
-                                                tname (cond
-                                                        (string/starts-with? tname "->") (subs tname 2)
-                                                        (string/starts-with? tname "!->") (subs tname 3)
-                                                        (string/starts-with? tname "!") (subs tname 1)
-                                                        :else tname)
-                                                cons (symbol (when (namespace type)
-                                                               (subs (namespace type) 1))
-                                                             (str "->" tname))]
-                                            (macros/case :clj (symbol (str
-                                                                       (-> cons resolve meta :ns str
-                                                                           (string/replace #"-" "_"))
-                                                                       "."
-                                                                       tname))
-                                                         :cljs (symbol (or (namespace cons)
-                                                                           (str (get (-> &env :ns :uses)
-                                                                                     (symbol (name cons)))))
-                                                                       (subs (name cons) 2))))
-                                          type)]
-                                    [type `(~method ~args ~body)]))
-                                (ensure-vec types)))
-                (partition 2 defs))))))
+     (let [proto-sym (gensym (str "proto-" (name method)))
+           proto-fn (gensym (str "fn-" (name method)))
+           this-ind (->> args
+                         (map #(-> {:tag (-> %2 meta :tag) :ind %1}) (range))
+                         (filter #(= 'this (:tag %)))
+                         first
+                         (#(get % :ind 0)))]
+       `(do (defprotocol ~proto-sym
+              ~(clojure.core/list proto-fn [(gensym "_")]))
+            (extend-protocol ~proto-sym
+              ~@(mapcat (fn [[types body]]
+                          (mapcat (fn [type]
+                                    (let [stype (str type)
+                                          type
+                                          (if (string/starts-with? stype "!")
+                                            (let [tname (name type)
+                                                  tname (cond
+                                                          (string/starts-with? tname "->") (subs tname 2)
+                                                          (string/starts-with? tname "!->") (subs tname 3)
+                                                          (string/starts-with? tname "!") (subs tname 1)
+                                                          :else tname)
+                                                  cons (symbol (when (namespace type)
+                                                                 (subs (namespace type) 1))
+                                                               (str "->" tname))]
+                                              (macros/case :clj (symbol (str
+                                                                         (-> cons resolve meta :ns str
+                                                                             (string/replace #"-" "_"))
+                                                                         "."
+                                                                         tname))
+                                                           :cljs (symbol (or (namespace cons)
+                                                                             (str (get (-> &env :ns :uses)
+                                                                                       (symbol (name cons)))))
+                                                                         (subs (name cons) 2))))
+                                            type)]
+                                      [type `(~proto-fn [_#] (fn ~args ~body))]))
+                                  (ensure-vec types)))
+                  (partition 2 defs)))
+            (defn ~method [& args#]
+              (apply (~proto-fn (nth args# ~this-ind)) args#))))))
 
 (deftagged Ok [result])
 (deftagged Fail [error])
