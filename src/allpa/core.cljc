@@ -9,6 +9,22 @@
                             [net.cgrand.macrovich :as macros])))
 
 ;; util
+(defn compare-ord [v1 v2]
+  (cond
+    (> v1 v2) :gt
+    (< v1 v2) :lt
+    :else :eq))
+
+(defn extreme-by [extreme compare items]
+  (reduce #(condp = (compare %1 %2)
+             extreme %1
+             %2)
+          (first items)
+          items))
+
+(def minimum-by (partial extreme-by :lt))
+(def maximum-by (partial extreme-by :gt))
+
 (def map-values util/map-values)
 (def map-keys util/map-keys)
 (def id util/id)

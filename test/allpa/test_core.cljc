@@ -53,6 +53,12 @@
 (def m-f (a/memoize f 3))
 
 (deftest core-api
+  (testing "exteme-by"
+    (let [compare #(a/compare-ord (:a %1) (:a %2))
+          items [{:a 1} {:a 4} {:a 0} {:a 6} {:a 3} {:a 2}]]
+      (is (= (a/minimum-by compare items) {:a 0}))
+      (is (= (a/maximum-by compare items) {:a 6}))
+      (is (= (a/maximum-by compare []) nil))))
   (testing "simplify"
     (is (= (-> lhm/empty
                (lhm/append- 1)
