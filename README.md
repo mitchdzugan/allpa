@@ -8,9 +8,7 @@
 ```
 
 **allpa** [aʎpa] *(Quechuan)* • noun
-> earth • the ground that supports us
-> 
-> without you, I have nothing to stand on
+> earth 
 
 ## Usage
 
